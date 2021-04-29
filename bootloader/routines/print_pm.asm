@@ -3,7 +3,7 @@ VIDEO_MEMORY equ 0xb8000
 WHITE_ON_BLACK equ 0x0f
 
 print_pm:
-    pusha 
+    pusha ;save registers in the stack 
     mov edx, VIDEO_MEMORY
 
 print_loop:

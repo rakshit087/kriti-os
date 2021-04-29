@@ -37,7 +37,7 @@ load_kernel:
 ; Global variables
 BOOT_DRIVE db 0
 LOADING_MSG db "Loading OS",0
-MSG_PROT_MODE db "Switched to 32 - bit Protected Mode",0
+MSG_PROT_MODE db "Welcome to Kriti OS",0
 MSG_LOAD_KERNEL db "Loading kernel into memory.",0
 
 ; Bootsector padding
