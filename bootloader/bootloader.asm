@@ -1,8 +1,8 @@
 [org 0x7c00]
-KERNEL_OFFSET equ 0x1000  ; This is the memory offset to which we will load our kernel
+KERNEL_OFFSET equ 0x1000  ;This is the memory offset to which we will load our kernel
 
 mov [BOOT_DRIVE], dl ; Remember that the BIOS sets us the boot drive in 'dl' on boot
-mov bp, 0x9000
+mov bp, 0x9000 ;initializing stack
 mov sp, bp
 mov bx , LOADING_MSG 
 call print_rm
@@ -36,10 +36,19 @@ load_kernel:
 
 ; Global variables
 BOOT_DRIVE db 0
-LOADING_MSG db "Started in 16 - bit Real Mode",0
-MSG_PROT_MODE db "Successfully landed in 32 - bit Protected Mode",0
+LOADING_MSG db "Loading OS",0
+MSG_PROT_MODE db "Switched to 32 - bit Protected Mode",0
 MSG_LOAD_KERNEL db "Loading kernel into memory.",0
 
 ; Bootsector padding
-times 510 - ($-$$) db 0
-dw 0xaa55
+times (0x1be - ($-$$)) db 0 ;offset 1be has partition 4 entries (each with 8 bytes)
+    db 80h ;indicates boot partition
+    db 0,2,0 ;indicates cylinder,head,sector
+    db 0f0h ;partition type
+    db 0ffh,0ffh,0ffh ;ending chs to max
+    dd 1 ;logical boot address of starting sector
+    dd (20*16*63-1) ;size
+
+    times (16*3) db 0 ;setting the next 3 entries to 0
+
+dw 0xaa55 ;magic number
