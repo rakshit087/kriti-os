@@ -1,14 +1,14 @@
 [bits 32]
 VIDEO_MEMORY equ 0xb8000
-WHITE_ON_BLACK equ 0x0f
+COLORS equ 0x05 ;magenta color
 
 print_pm:
     pusha ;save registers in the stack 
     mov edx, VIDEO_MEMORY
 
 print_loop:
-    mov al, [ ebx ] 
-    mov ah, WHITE_ON_BLACK
+    mov al, [ ebx ] ;al has ASCII character
+    mov ah, COLORS ;ah has colors
     cmp al, 0 
     je print_done 
     mov [edx], ax 
