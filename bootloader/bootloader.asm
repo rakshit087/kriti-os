@@ -7,18 +7,17 @@ mov sp, bp
 mov bx , LOADING_MSG ;printing a loading message
 call print_rm
 call load_kernel ;Load our kernel, it requires BIOS interupts
-call enter_pm ;Switch to protected mode
 jmp $
 
-%include "routines/print_rm.asm"
-%include "routines/load_disk.asm"
-%include "routines/gdt.asm"
-%include "routines/print_pm.asm"
-%include "routines/enter_pm.asm"
+%include "bootloader/routines/print_rm.asm"
+%include "bootloader/routines/load_disk.asm"
+%include "bootloader/routines/gdt.asm"
+%include "bootloader/routines/print_pm.asm"
+%include "bootloader/routines/enter_pm.asm"
 
 [bits 16]
 ; load_kernel
-%include "routines/load_kernel.asm"
+%include "bootloader/routines/load_kernel.asm"
 
 [bits 32]
     BEGIN_PM:
