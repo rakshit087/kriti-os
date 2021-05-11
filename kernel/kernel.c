@@ -1,8 +1,7 @@
-void myFunction() {
-    
-}
+#include "drivers/display.h"
 
-void main() {
-    char* video_memory = (char*) 0xb8000;
-    *video_memory = 'P';
+int kernel_main()
+{
+    display_char('P',WHITE);
+    return 0;
 }

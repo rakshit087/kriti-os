@@ -1,4 +1,6 @@
-[bits 32] ;to explicitly call the main function
-[extern main] 
-call main
-jmp $
+global _start
+[bits 32] 
+_start:
+    [extern kernel_main] 
+    call kernel_main
+    jmp $

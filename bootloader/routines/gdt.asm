@@ -1,7 +1,4 @@
 gdt_start:
-
-; null descripter
-gdt_null: 
 dd 0x0 
 dd 0x0
 
