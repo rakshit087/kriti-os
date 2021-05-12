@@ -7,12 +7,13 @@ LD = i386elf-gcc/bin/i386-elf-ld
 
 CFLAGS = -g
 
-boot.img: bootloader/bootloader.bin kernel.bin
-	cat $^ > os-image.bin
-	dd if=os-image.bin of=boot.img bs=512 count=16 conv=notrunc
+boot.img: bootloader/boot.bin bootloader/loader.bin kernel.bin
+	dd if=bootloader/boot.bin of=boot.img bs=512 count=1 conv=notrunc
+	dd if=bootloader/loader.bin of=boot.img bs=512 count=5 seek=1 conv=notrunc
+	dd if=kernel.bin of=boot.img bs=512 count=100 seek=6 conv=notrunc
 
 kernel.bin: kernel/kernel_entry.o ${OBJ}
-	${LD} -o $@ -Ttext 0x1000 $^ --oformat binary
+	${LD} -o $@ -Ttext 0x10000 $^ --oformat binary
 
 run: boot.img
 	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk

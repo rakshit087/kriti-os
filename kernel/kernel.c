@@ -2,6 +2,8 @@
 
 int kernel_main()
 {
-    display("Hello World I am doing great tell me about you",RED);
+    cls();
+    display("Welcome to ",YELLOW);
+    display("Kriti OS\n",PINK);
     return 0;
 }
