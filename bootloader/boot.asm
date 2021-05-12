@@ -7,19 +7,24 @@ jmp real_mode
 
 real_mode:
 mov [DriveId],dl
+    ;Initialize registers with 0
     xor ax,ax   
     mov ds,ax
     mov es,ax  
     mov ss,ax
+    ;initialize stack
     mov sp,0x7c00
+    ;clear screen
     call clear_screen_rm
-    ; Enable A20 gate
+    ;Enable A20 gate
     in al, 0x92
     or al, 2
     out 0x92, al
+    ;Print Welcome Message
     mov bp,WelcomeMsg
     call print_rm
     call new_line_rm
+    ;Ask for key input
     mov bp,PressMsg
     call print_rm
     call new_line_rm
@@ -55,7 +60,7 @@ jmp $
 DriveId db 0
 WelcomeMsg db "Welcome to Kriti OS Bootloader", 0
 PressMsg db "Press Any Key to Continue", 0
-LoadingMsg db "Switching to 32 bits", 0
+LoadingMsg db "Loading Kernel", 0
 ErrorMsg db "32 bits not supported / Disk Read Error", 0
 
 ReadPacket: times 16 db 0

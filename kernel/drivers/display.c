@@ -1,6 +1,9 @@
 #include "display.h"
 #include "ports.h"
 
+//Global Variables
+char *vidmem = (char *)VIDEO_ADDRESS;
+
 //Declaring Private Helper Functions
 int cal_offset(int col, int row);
 int cal_offset_row(int offset);
@@ -15,13 +18,12 @@ int print_char(char c, int col, int row, char attr);
 
 void cls()
 {
-    char *screen = (char *)VIDEO_ADDRESS;
     int screen_size = MAX_COLS * MAX_ROWS;
     int i;
     for (i = 0; i < screen_size; i++)
     {
-        screen[i * 2] = ' ';
-        screen[i * 2 + 1] = WHITE;
+        vidmem[i * 2] = ' ';
+        vidmem[i * 2 + 1] = WHITE;
     }
     set_cursor(cal_offset(0, 0));
 }
@@ -64,8 +66,16 @@ int cal_offset(int col, int row)
 {
     return 2 * (row * MAX_COLS + col);
 }
-int cal_offset_row(int offset) { return offset / (2 * MAX_COLS); }
-int cal_offset_col(int offset) { return (offset - (cal_offset_row(offset) * 2 * MAX_COLS)) / 2; }
+
+int cal_offset_row(int offset)
+{
+    return offset / (2 * MAX_COLS);
+}
+
+int cal_offset_col(int offset)
+{
+    return (offset - (cal_offset_row(offset) * 2 * MAX_COLS)) / 2;
+}
 
 int get_cursor()
 {
@@ -85,9 +95,30 @@ void set_cursor(int offset)
     outb(SCREEN_DATA, (unsigned char)(offset & 0xff)); //writing on 15th reg
 }
 
+int scroll(int offset)
+{
+    int i, j;
+    for (i = 1; i < MAX_ROWS; i++)
+    {
+        for (j = 0; j < MAX_COLS * 2; j++)
+        {
+            *((cal_offset(0, i-1) + vidmem) + j) = *((cal_offset(0, i) + vidmem) + j);
+        }
+    }
+
+    /* Blank last line */
+    char *last_line = vidmem + cal_offset(0, MAX_ROWS - 1);
+    for (i = 0; i < MAX_COLS * 2; i++)
+    {
+        last_line[i] = 0;
+    }
+
+    offset -= 2 * MAX_COLS;
+    return offset;
+}
+
 int print_char(char c, int col, int row, char attr)
 {
-    unsigned char *vidmem = (unsigned char *)VIDEO_ADDRESS;
     //In case of no attribute, set the default attribute to White
     if (!attr)
         attr = WHITE;
@@ -118,6 +149,10 @@ int print_char(char c, int col, int row, char attr)
         vidmem[offset] = c;
         vidmem[offset + 1] = attr;
         offset += 2;
+    }
+    if (offset >= MAX_ROWS * MAX_COLS * 2)
+    {
+        offset = scroll(offset);
     }
     set_cursor(offset);
     return offset;

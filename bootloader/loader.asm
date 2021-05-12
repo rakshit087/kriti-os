@@ -7,7 +7,6 @@ jmp load_kernel
 %include "bootloader/routines/gdt.asm"
 
 load_error:
-    call new_line_rm
     mov bp, ErrorMsg
     call print_rm
     call new_line_rm
@@ -28,6 +27,13 @@ load_kernel:
     mov ah,0x42
     int 0x13
     jc  load_error
+    mov bp, LoadedMsg
+    call print_rm
+    call new_line_rm
+    mov bp,PressMsg
+    call print_rm
+    call new_line_rm
+    call key_wait
 
 enter_pm:
     cli ;clear all inturrupts
@@ -58,3 +64,5 @@ init_pm: ; we are now using 32-bit instructions
 DriveId:    db 0
 ReadPacket: times 16 db 0
 ErrorMsg db "Unable to Load Kernel", 0
+LoadedMsg db "Kerel Loaded", 0
+PressMsg db "Press Any Key to Continue", 0
