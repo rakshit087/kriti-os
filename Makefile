@@ -1,5 +1,5 @@
-C_SOURCES = $(wildcard kernel/*.c kernel/drivers/*.c)
-HEADERS = $(wildcard kernel/*.h kernel/drivers/*.h)
+C_SOURCES = $(wildcard kernel/*.c kernel/include/*.c)
+HEADERS = $(wildcard kernel/*.h kernel/include/*.h)
 OBJ = ${C_SOURCES:.c=.o}
 
 CC = i386elf-gcc/bin/i386-elf-gcc
@@ -12,7 +12,7 @@ boot.img: bootloader/boot.bin bootloader/loader.bin kernel.bin
 	dd if=bootloader/loader.bin of=boot.img bs=512 count=5 seek=1 conv=notrunc
 	dd if=kernel.bin of=boot.img bs=512 count=100 seek=6 conv=notrunc
 
-kernel.bin: kernel/kernel_entry.o ${OBJ}
+kernel.bin: kernel/kernel_entry.o kernel/include/interrupt.o ${OBJ}
 	${LD} -o $@ -Ttext 0x10000 $^ --oformat binary
 
 run: boot.img
@@ -29,4 +29,4 @@ run: boot.img
 
 clean:
 	rm -rf *.bin *.dis *.o os-image.bin *.elf
-	rm -rf kernel/*.o bootloader/*.bin kernel/drivers/*.o bootloader/*.o
+	rm -rf kernel/*.o bootloader/*.bin kernel/include/*.o bootloader/*.o 
