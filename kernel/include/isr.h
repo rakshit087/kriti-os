@@ -1,7 +1,8 @@
 #ifndef ISR_H
 #define ISR_H
 
-
+#include "types.h"
+#include "idt.h"
 /* ISRs reserved for CPU exceptions */
 extern void isr0();
 extern void isr1();
@@ -35,6 +36,7 @@ extern void isr28();
 extern void isr29();
 extern void isr30();
 extern void isr31();
+extern void isr128();
 /* IRQ definitions */
 extern void irq0();
 extern void irq1();
@@ -70,18 +72,42 @@ extern void irq15();
 #define IRQ14 46
 #define IRQ15 47
 
-/* Struct which aggregates many registers */
-typedef struct {
-   unsigned int ds; /* Data segment selector */
-   unsigned int edi, esi, ebp, esp, ebx, edx, ecx, eax; /* Pushed by pusha. */
-   unsigned int int_no, err_code; /* Interrupt number and error code (if applicable) */
-   unsigned int eip, cs, eflags, useresp, ss; /* Pushed by the processor automatically */
-} registers_t;
+/* isrs reserved for CPU exceptions */
+void isr0();
+void isr1();
+void isr2();
+void isr3();
+void isr4();
+void isr5();
+void isr6();
+void isr7();
+void isr8();
+void isr9();
+void isr10();
+void isr11();
+void isr12();
+void isr13();
+void isr14();
+void isr15();
+void isr16();
+void isr17();
+void isr18();
+void isr19();
+void isr20();
+void isr21();
+void isr22();
+void isr23();
+void isr24();
+void isr25();
+void isr26();
+void isr27();
+void isr28();
+void isr29();
+void isr30();
+void isr31();
 
-void init_idt();
-void isr_handler(registers_t r);
-
-typedef void (*isr_t)(registers_t);
-void register_interrupt_handler(unsigned char n, isr_t handler);
+char* exception_messages[32];
+void isr_install();
+void register_interrupt_handler(uint8 n, interrupt_handler_t handler);
 
 #endif

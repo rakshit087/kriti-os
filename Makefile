@@ -16,7 +16,7 @@ kernel.bin: kernel/kernel_entry.o kernel/include/interrupt.o ${OBJ}
 	${LD} -o $@ -Ttext 0x10000 $^ --oformat binary
 
 run: boot.img
-	qemu-system-i386 -drive file=boot.img,format=raw,index=0,media=disk
+	qemu-system-i386 -drive file=boot.img -soundhw pcspk
 
 %.o: %.c ${HEADERS}
 	${CC} ${CFLAGS} -ffreestanding -c $< -o $@

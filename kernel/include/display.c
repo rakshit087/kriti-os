@@ -57,7 +57,8 @@ void display_backspace() {
     int offset = get_cursor()-2;
     int row = cal_offset_row(offset);
     int col = cal_offset_col(offset);
-    print_char(0x08, col, row, WHITE);
+    print_char(' ', col, row, WHITE);
+    set_cursor(offset);
 }
 /****************************/
 /* PRIVATE HELPER FUNCTIONS */

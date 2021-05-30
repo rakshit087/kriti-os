@@ -1,80 +1,11 @@
 #include "isr.h"
-#include "idt.h"
 #include "display.h"
 #include "string.h"
 #include "ports.h"
+#include "mem.h"
 
-isr_t interrupt_handlers[256];
-
-void init_idt()
+char* exception_messages[] =
 {
-    set_idt_gate(0, (unsigned int)isr0);
-    set_idt_gate(1, (unsigned int)isr1);
-    set_idt_gate(2, (unsigned int)isr2);
-    set_idt_gate(3, (unsigned int)isr3);
-    set_idt_gate(4, (unsigned int)isr4);
-    set_idt_gate(5, (unsigned int)isr5);
-    set_idt_gate(6, (unsigned int)isr6);
-    set_idt_gate(7, (unsigned int)isr7);
-    set_idt_gate(8, (unsigned int)isr8);
-    set_idt_gate(9, (unsigned int)isr9);
-    set_idt_gate(10, (unsigned int)isr10);
-    set_idt_gate(11, (unsigned int)isr11);
-    set_idt_gate(12, (unsigned int)isr12);
-    set_idt_gate(13, (unsigned int)isr13);
-    set_idt_gate(14, (unsigned int)isr14);
-    set_idt_gate(15, (unsigned int)isr15);
-    set_idt_gate(16, (unsigned int)isr16);
-    set_idt_gate(17, (unsigned int)isr17);
-    set_idt_gate(18, (unsigned int)isr18);
-    set_idt_gate(19, (unsigned int)isr19);
-    set_idt_gate(20, (unsigned int)isr20);
-    set_idt_gate(21, (unsigned int)isr21);
-    set_idt_gate(22, (unsigned int)isr22);
-    set_idt_gate(23, (unsigned int)isr23);
-    set_idt_gate(24, (unsigned int)isr24);
-    set_idt_gate(25, (unsigned int)isr25);
-    set_idt_gate(26, (unsigned int)isr26);
-    set_idt_gate(27, (unsigned int)isr27);
-    set_idt_gate(28, (unsigned int)isr28);
-    set_idt_gate(29, (unsigned int)isr29);
-    set_idt_gate(30, (unsigned int)isr30);
-    set_idt_gate(31, (unsigned int)isr31);
-
-    // Remap the PIC
-    outb(0x20, 0x11);
-    outb(0xA0, 0x11);
-    outb(0x21, 0x20);
-    outb(0xA1, 0x28);
-    outb(0x21, 0x04);
-    outb(0xA1, 0x02);
-    outb(0x21, 0x01);
-    outb(0xA1, 0x01);
-    outb(0x21, 0x0);
-    outb(0xA1, 0x0);
-
-    // Install the IRQs
-    set_idt_gate(32, (unsigned int)irq0);
-    set_idt_gate(33, (unsigned int)irq1);
-    set_idt_gate(34, (unsigned int)irq2);
-    set_idt_gate(35, (unsigned int)irq3);
-    set_idt_gate(36, (unsigned int)irq4);
-    set_idt_gate(37, (unsigned int)irq5);
-    set_idt_gate(38, (unsigned int)irq6);
-    set_idt_gate(39, (unsigned int)irq7);
-    set_idt_gate(40, (unsigned int)irq8);
-    set_idt_gate(41, (unsigned int)irq9);
-    set_idt_gate(42, (unsigned int)irq10);
-    set_idt_gate(43, (unsigned int)irq11);
-    set_idt_gate(44, (unsigned int)irq12);
-    set_idt_gate(45, (unsigned int)irq13);
-    set_idt_gate(46, (unsigned int)irq14);
-    set_idt_gate(47, (unsigned int)irq15);
-
-    flush_idt(); // Load with ASM, sets the remainig to NULL
-}
-
-char *exception_messages[] = {
     "Division By Zero",
     "Debug",
     "Non Maskable Interrupt",
@@ -101,39 +32,271 @@ char *exception_messages[] = {
     "Reserved",
     "Reserved",
     "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved"
+};
 
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"};
-
-void isr_handler(registers_t r)
+//The function registers a new interrupt into the IDT.
+void register_interrupt_handler(uint8 n, interrupt_handler_t handler)
 {
-    display("Received Interrupt: ", YELLOW);
-    char s[3];
-    int_to_ascii(r.int_no, s);
-    display(s, RED);
-    display("\n", WHITE);
-    display(exception_messages[r.int_no], RED);
-    display("\n", WHITE);
-}
-
-void register_interrupt_handler(unsigned char n, isr_t handler) {
     interrupt_handlers[n] = handler;
+    set_idt_gate(n, (uint32)handler);
 }
 
-void irq_handler(registers_t r) {
-    /* After every interrupt we need to send an EOI to the PICs
-     * or they will not send another interrupt again */
-    if (r.int_no >= 40) outb(0xA0, 0x20); /* slave */
-    outb(0x20, 0x20); /* master */
+void isr_install()
+{
+  idt_reg.limit = sizeof (idt_gate_t) * IDT_ENTRIES - 1;
+  idt_reg.base  = (uint32) &idt;
 
-    /* Handle the interrupt in a more modular way */
-    if (interrupt_handlers[r.int_no] != 0) {
-        isr_t handler = interrupt_handlers[r.int_no];
+  memory_set(&idt, 0, sizeof (idt_gate_t) * IDT_ENTRIES - 1);
+
+  outb(0x20, 0x11);
+  outb(0xA0, 0x11);
+  outb(0x21, 0x20);
+  outb(0xA1, 0x28);
+  outb(0x21, 0x04);
+  outb(0xA1, 0x02);
+  outb(0x21, 0x01);
+  outb(0xA1, 0x01);
+  outb(0x21, 0x0);
+  outb(0xA1, 0x0);
+
+  set_idt_gate(0, (uint32)isr0);
+  set_idt_gate(1, (uint32)isr1);
+  set_idt_gate(2, (uint32)isr2);
+  set_idt_gate(3, (uint32)isr3);
+  set_idt_gate(4, (uint32)isr4);
+  set_idt_gate(5, (uint32)isr5);
+  set_idt_gate(6, (uint32)isr6);
+  set_idt_gate(7, (uint32)isr7);
+  set_idt_gate(8, (uint32)isr8);
+  set_idt_gate(9, (uint32)isr9);
+  set_idt_gate(10, (uint32)isr10);
+  set_idt_gate(11, (uint32)isr11);
+  set_idt_gate(12, (uint32)isr12);
+  set_idt_gate(13, (uint32)isr13);
+  set_idt_gate(14, (uint32)isr14);
+  set_idt_gate(15, (uint32)isr15);
+  set_idt_gate(16, (uint32)isr16);
+  set_idt_gate(17, (uint32)isr17);
+  set_idt_gate(18, (uint32)isr18);
+  set_idt_gate(19, (uint32)isr19);
+  set_idt_gate(20, (uint32)isr20);
+  set_idt_gate(21, (uint32)isr21);
+  set_idt_gate(22, (uint32)isr22);
+  set_idt_gate(23, (uint32)isr23);
+  set_idt_gate(24, (uint32)isr24);
+  set_idt_gate(25, (uint32)isr25);
+  set_idt_gate(26, (uint32)isr26);
+  set_idt_gate(27, (uint32)isr27);
+  set_idt_gate(28, (uint32)isr28);
+  set_idt_gate(29, (uint32)isr29);
+  set_idt_gate(30, (uint32)isr30);
+  set_idt_gate(31, (uint32)isr31);
+  set_idt_gate (32, (uint32)irq0);
+  set_idt_gate (33, (uint32)irq1);
+  set_idt_gate (34, (uint32)irq2);
+  set_idt_gate (35, (uint32)irq3);
+  set_idt_gate (36, (uint32)irq4);
+  set_idt_gate (37, (uint32)irq5);
+  set_idt_gate (38, (uint32)irq6);
+  set_idt_gate (39, (uint32)irq7);
+  set_idt_gate (40, (uint32)irq8);
+  set_idt_gate (41, (uint32)irq9);
+  set_idt_gate (42, (uint32)irq10);
+  set_idt_gate (43, (uint32)irq11);
+  set_idt_gate (44, (uint32)irq12);
+  set_idt_gate (45, (uint32)irq13);
+  set_idt_gate (46, (uint32)irq14);
+  set_idt_gate (47, (uint32)irq15);
+  set_idt_gate(128, (uint32)isr128);
+  set_idt(); // Load with ASM
+  memory_set(&interrupt_handlers, 0, sizeof (interrupt_handler_t) * IDT_ENTRIES);
+}
+
+/*Handlers*/
+void isr0()
+{
+    display(exception_messages[0],RED);
+    asm("hlt");
+}
+void isr1()
+{
+    display(exception_messages[1],RED);
+    asm("hlt");
+}
+void isr2()
+{
+    display(exception_messages[2],RED);
+    asm("hlt");
+}
+void isr3()
+{
+    display(exception_messages[3],RED);
+    asm("hlt");
+}
+void isr4()
+{
+    display(exception_messages[4],RED);
+    asm("hlt");
+}
+void isr5()
+{
+    display(exception_messages[5],RED);
+    asm("hlt");
+}
+void isr6()
+{
+    display(exception_messages[6],RED);
+    asm("hlt");
+}
+void isr7()
+{
+    display(exception_messages[7],RED);
+    asm("hlt");
+}
+void isr8()
+{
+    display(exception_messages[8],RED);
+    asm("hlt");
+}
+void isr9()
+{
+    display(exception_messages[9],RED);
+    asm("hlt");
+}
+void isr10()
+{
+    display(exception_messages[10],RED);
+    asm("hlt");
+}
+void isr11()
+{
+    display(exception_messages[11],RED);
+    asm("hlt");
+}
+void isr12()
+{
+    display(exception_messages[12],RED);
+    asm("hlt");
+}
+void isr13()
+{
+    display(exception_messages[13],RED);
+    asm("hlt");
+}
+void isr14()
+{
+    display(exception_messages[14],RED);
+    asm("hlt");
+}
+void isr15()
+{
+    display(exception_messages[15],RED);
+    asm("hlt");
+}
+void isr16()
+{
+    display(exception_messages[16],RED);
+    asm("hlt");
+}
+void isr17()
+{
+    display(exception_messages[17],RED);
+    asm("hlt");
+}
+void isr18()
+{
+    display(exception_messages[18],RED);
+    asm("hlt");
+}
+void isr19()
+{
+    display(exception_messages[19],RED);
+    asm("hlt");
+}
+void isr20()
+{
+    display(exception_messages[20],RED);
+    asm("hlt");
+}
+void isr21()
+{
+    display(exception_messages[21],RED);
+    asm("hlt");
+}
+void isr22()
+{
+    display(exception_messages[22],RED);
+    asm("hlt");
+}
+void isr23()
+{
+    display(exception_messages[23],RED);
+    asm("hlt");
+}
+void isr24()
+{
+    display(exception_messages[24],RED);
+    asm("hlt");
+}
+void isr25()
+{
+    display(exception_messages[25],RED);
+    asm("hlt");
+}
+void isr26()
+{
+    display(exception_messages[26],RED);
+    asm("hlt");
+}
+void isr27()
+{
+    display(exception_messages[27],RED);
+    asm("hlt");
+}
+void isr28()
+{
+    display(exception_messages[28],RED);
+    asm("hlt");
+}
+void isr29()
+{
+    display(exception_messages[29],RED);
+    asm("hlt");
+}
+void isr30()
+{
+    display(exception_messages[30],RED);
+    asm("hlt");
+}
+void isr31()
+{
+    display(exception_messages[31],RED);
+    asm("hlt");
+}
+void isr128()
+{
+    display("isr 128!\n",RED);
+    asm("hlt");
+}
+
+void irq_handler(registers32_t *regs)
+{
+    if (regs->int_no >= 40)
+    {
+        outb(0xA0, 0x20);
+    }
+    outb(0x20, 0x20);
+
+    if (interrupt_handlers[regs->int_no] != 0)
+    {
+      interrupt_handlers[regs->int_no] (regs);
     }
 }
