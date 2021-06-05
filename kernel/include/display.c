@@ -3,7 +3,6 @@
 
 //Global Variables
 char *vidmem = (char *)VIDEO_ADDRESS;
-
 //Declaring Private Helper Functions
 int cal_offset(int col, int row);
 int cal_offset_row(int offset);

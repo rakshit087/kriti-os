@@ -77,6 +77,6 @@ void play_on_boot()
 	beep(586); //D
 	beep(586); //D
 	sleep();
-	beep(830); //G#
+	beep(415); //G#
 	sleep();
 }

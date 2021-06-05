@@ -27,3 +27,15 @@ unsigned short inw(unsigned short port)
     __asm__("in %%dx, %%ax" : "=a" (result) : "d" (port));
     return result;
 }
+
+uint8 read_register(uint8 reg)
+{
+    outb(0x70, reg);
+    return inb(0x71);
+}
+
+void write_register(uint8 reg, uint8 value)
+{
+    outb(0x70, reg);
+    outb(0x71, value);
+}

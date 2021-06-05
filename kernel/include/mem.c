@@ -39,3 +39,8 @@ void memory_set(void* dest, uint32 val, uint32 len)
     i++;
   }
 }
+
+uint8 bcd2bin(uint8 bcd)
+{
+    return ((bcd >> 4) * 10) + (bcd & 0x0F);
+}

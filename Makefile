@@ -12,7 +12,7 @@ boot.img: bootloader/boot.bin bootloader/loader.bin kernel.bin
 	dd if=bootloader/loader.bin of=boot.img bs=512 count=5 seek=1 conv=notrunc
 	dd if=kernel.bin of=boot.img bs=512 count=100 seek=6 conv=notrunc
 
-kernel.bin: kernel/kernel_entry.o kernel/include/interrupt.o ${OBJ}
+kernel.bin: kernel/kernel_entry.o kernel/include/interrupt.o kernel/include/graphic_asm.o ${OBJ}
 	${LD} -o $@ -Ttext 0x10000 $^ --oformat binary
 
 run: boot.img
