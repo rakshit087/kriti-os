@@ -29,22 +29,6 @@ void beep(uint32 nFrequence)
 	sleep();
 	nosound();
 }
-
-		// 'a'=261.63*$octave;		# C
-		// 'w'=277.18*$octave;		# C#
-		// 's'=293.66*$octave;		# D
-		// 'e'=311.13*$octave;		# D#
-		// 'd'=329.63*$octave;		# E
-		// 'f'=349.23*$octave;		# F
-		// 't'=369.99*$octave;		# F#
-		// 'g'=392.00*$octave;		# G
-		// 'y'=415.30*$octave;		# G#
-		// 'h'=440.00*$octave;		# A
-		// 'u'=466.16*$octave;		# A#
-		// 'j'=493.88*$octave;		# B
-		// 'k'=523.25*$octave;		# C
-// [277 293 329 440 415 440 493 329+ 440 493 329+ 293+ 277+]
-// 
 void play_on_boot()
 {
 	//Chord-> A B E+A B E+D+C#+
