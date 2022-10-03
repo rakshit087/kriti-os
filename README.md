@@ -28,6 +28,14 @@ I have divided kernel into 4 parts.
 * General - This file contains general functions which are required throughout the kernel, like memcpy, reverse etc
 * Kernel.c - The main kernel file which is loaded when we boot our OS.
 
+## Running
+
+The easiest way of running the hard disk image (boot.img) is QEMU. Since KritiOs is a 32-bit operating system, the emulator used is qemu-system-i386, it should come inside the qemu-system-x86 package, and also other packages that include it like qemu-emulators-full. 
+
+Then, run the following command:
+
+`qemu-system-i386 -drive file=boot.img,format=raw -soundhw pcspk`
+
 ## Gallery
 
 ![image](https://user-images.githubusercontent.com/50898928/187917260-16547852-7657-4872-8194-59f07b985c7d.png)
